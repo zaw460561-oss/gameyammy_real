@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chronicles of the Ancients - เกมเรียนรู้ประวัติศาสตร์อารยธรรมโบราณแบบ RPG ตัดสินใจ สำรวจ 24 เส้นทางอารยธรรม">
+    <title>Chronicles of the Ancients: ศึกนักท่องเวลาตะลุย 4 อารยธรรม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=Cinzel:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        thai: ['Noto Sans Thai', 'sans-serif'],
+                        cinzel: ['Cinzel', 'serif'],
+                        playfair: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            background: #060610;
+            color: #e8e6e3;
+            overflow-x: hidden;
+        }
+
+        /* Animated starfield background */
+        .bg-cosmos {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background:
+                radial-gradient(ellipse at 15% 30%, rgba(88, 28, 135, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 70%, rgba(30, 58, 138, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(15, 23, 42, 0.8) 0%, #060610 100%);
+        }
+        .bg-cosmos::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image:
+                radial-gradient(1px 1px at 5% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 12% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 18% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 25% 25%, rgba(200,180,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 32% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 48% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 55% 35%, rgba(180,200,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 62% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 78% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 85% 40%, rgba(255,220,180,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 92% 65%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 8% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 95% 8%, rgba(255,255,255,0.4) 0%, transparent 100%);
+            animation: twinkle 6s ease-in-out infinite alternate;
+        }
+        @keyframes twinkle { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Card interactions */
+        .choice-card {
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .choice-card::before {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .choice-card:hover::before { opacity: 1; }
+        .choice-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(139, 92, 246, 0.25), 0 0 50px rgba(139, 92, 246, 0.08);
+        }
+
+        /* Gradient border animation */
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-border-wrap {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4, #f59e0b, #ec4899, #7c3aed);
+            background-size: 400% 400%;
+            animation: borderFlow 6s ease infinite;
+            padding: 1.5px;
+            border-radius: 1rem;
+        }
+
+        /* Rank animations */
+        @keyframes rankGlow {
+            0%, 100% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 20px currentColor); }
+            50% { transform: scale(1.08); filter: brightness(1.4) drop-shadow(0 0 40px currentColor); }
+        }
+        .rank-glow { animation: rankGlow 2.5s ease-in-out infinite; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-fade-up { animation: fadeInUp 0.7s ease-out both; }
+
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(-60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .anim-slide-left { animation: slideLeft 0.8s ease-out both; }
+
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .anim-slide-right { animation: slideRight 0.8s ease-out both; }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .anim-scale-in { animation: scaleIn 0.6s ease-out both; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .float-anim { animation: float 3.5s ease-in-out infinite; }
+
+        /* Shimmer text */
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .text-shimmer {
+            background: linear-gradient(90deg, #ffd700, #fffacd, #ffd700, #fffacd, #ffd700);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s linear infinite;
+        }
+
+        /* Stacking icon floats */
+        @keyframes iconBob1 { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
+        @keyframes iconBob2 { 0%,100%{transform:translateY(0) rotate(1deg)} 50%{transform:translateY(-10px) rotate(-1deg)} }
+        @keyframes iconBob3 { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-6px) rotate(3deg)} }
+        @keyframes iconBob4 { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-9px) rotate(1deg)} }
+        .icon-bob-1 { animation: iconBob1 3s ease-in-out infinite; }
+        .icon-bob-2 { animation: iconBob2 3.5s ease-in-out infinite 0.3s; }
+        .icon-bob-3 { animation: iconBob3 2.8s ease-in-out infinite 0.6s; }
+        .icon-bob-4 { animation: iconBob4 3.2s ease-in-out infinite 0.9s; }
+
+        /* Progress bar */
+        .progress-fill { transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+
+        /* Stat bar */
+        .stat-bar-fill { transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s; }
+
+        /* Knowledge panel */
+        .knowledge-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+            opacity: 0;
+        }
+        .knowledge-panel.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+
+        /* Showcase banner */
+        .showcase-banner {
+            background:
+                linear-gradient(135deg, rgba(15,12,41,0.95) 0%, rgba(26,26,62,0.95) 35%, rgba(36,36,62,0.95) 65%, rgba(15,12,41,0.95) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Particle effect for title */
+        @keyframes particleDrift {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.7; }
+            100% { transform: translateY(-30px) translateX(10px) scale(0); opacity: 0; }
+        }
+
+        /* Button pulse */
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.4); }
+            50% { box-shadow: 0 0 0 12px rgba(139,92,246,0); }
+        }
+        .icon-bob-4 { animation: bob 2.6s ease-in-out infinite; }
+        .btn-pulse { animation: btnPulse 2s ease-in-out infinite; }
+        
+        /* Visual Effect: Star Blink */
+        .fx-star {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        .fx-blink-fast { animation: star-blink 0.2s infinite; }
+        .fx-blink-medium { animation: star-blink 0.6s infinite; }
+        .fx-blink-slow { animation: star-blink 2s infinite; }
+        
+        @keyframes star-blink {
+            0%, 100% { opacity: 0.1; transform: scale(0.7); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Glassmorphism components */
+        .glass {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Page transition */
+        .page-enter {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Pixel Art Animations */
+        @keyframes animBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        .anim-blink { animation: animBlink 2s infinite; }
+        
+        @keyframes animFlag {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(0.7); }
+        }
+        .anim-flag { animation: animFlag 1s infinite; transform-origin: left center; }
+        
+        @keyframes animFloatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
+        }
+        .anim-float-up { animation: animFloatUp 3s infinite linear; }
+    </style>
+</head>
+<body>
+    <div class="bg-cosmos"></div>
+    <div id="root"></div>
+
+    <script src="assets/images.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+        // ==================== ENRICHED GAME DATA (from PDFs + creategame.txt) ====================
+        const GAME_DATA = [
+            {
+                stage: 1,
+                title: "ขั้นที่ 1: จุดเริ่มต้นถิ่นฐาน",
+                titleEn: "Origin",
+                subtitle: "เลือกจุดกำเนิดอารยธรรมของท่าน",
+                options: [
+                    {
+                        id: "1A",
+                        name: "ตั้งถิ่นฐานลุ่มแม่น้ำใหญ่",
+                        subtitle: "อารยธรรมอียิปต์",
+                        desc: "ตั้งรกรากบริเวณลุ่มแม่น้ำไนล์ที่พัดพาความอุดมสมบูรณ์มาทุกปี สร้างพีระมิดสุสานฟาโรห์ และใช้อักษรภาพเฮียโรกลิฟิก",
+                        knowledge: [
+                            "อารยธรรมอียิปต์เกิดในทวีปแอฟริกา บริเวณลุ่มแม่น้ำไนล์ แม่น้ำจะท่วมสองฝั่งในช่วงเดือนกันยายน ทำให้ดินอุดมสมบูรณ์เหมาะแก่การเพาะปลูก",
+                            "ฟาโรห์เป็นผู้ปกครองมีอำนาจสูงสุดประดุจเทพเจ้า มีอำนาจเด็ดขาดในการบริหารบ้านเมือง",
+                            "ภูมิปัญญาสำคัญ: คณิตศาสตร์ เรขาคณิต ฟิสิกส์ (ใช้สร้างพีระมิด) อักษรเฮียโรกลิฟิก การแพทย์ผ่าตัด และการทำมัมมี่",
+                            "พีระมิดแห่งเมืองกีซา ใช้แรงงานคนถึง 100,000 คน เป็นเวลา 20 ปี ใช้หินหนักก้อนละ 2.2-2.5 ตัน รวมประมาณ 2 ล้านก้อน",
+                            "มีกระดาษปาปิรุสเป็นชนิดแรกของโลก คิดปฏิทินสุริยคติ 1 ปี 12 เดือน 365 วัน แบ่ง 3 ฤดู คือ น้ำท่วม ไถ่หว่าน เก็บเกี่ยว"
+                        ],
+                        stats: { A: 10, C: 10 },
+                        icon: "🏛️",
+                        accent: "#f59e0b"
+                    },
+                    {
+                        id: "1B",
+                        name: "ตั้งถิ่นฐานชายฝั่งและหมู่เกาะ",
+                        subtitle: "อารยธรรมกรีก",
+                        desc: "ตั้งรกรากบนคาบสมุทรและหมู่เกาะ พัฒนาระบบนครรัฐ (Polis) เดินเรือค้าขาย และสร้างสถาปัตยกรรมวิหารพาร์เธนอน",
+                        knowledge: [
+                            "กรีกโบราณเกิดในทวีปยุโรป ทางตอนใต้ของคาบสมุทรบอลข่านและชายฝั่งทะเลอีเจียน ติดชายฝั่งทะเลจึงประกอบอาชีพค้าขายและประมง",
+                            "ระบบการปกครองเป็นแบบนครรัฐ (Polis) ที่เป็นอิสระจากกัน ชาวกรีกเรียกตัวเองว่า 'เฮลลีน'",
+                            "นักปราชญ์สำคัญ: โสคราตีส (สอนใช้เหตุผลแสวงหาความจริง) เพลโต (เขียนหนังสือ 'สาธารณรัฐ' ตั้งโรงเรียน 'อะแคเดมี') อริสโตเติล (วางรากฐานตรรกศาสตร์ ชีววิทยา ฟิสิกส์)",
+                            "สถาปัตยกรรมเสาหิน 3 แบบ: ดอริก (หัวเสาเรียบ) ไอโอนิก (หัวเสามวนย้อย) คอรินเธียน (หัวเสาใบไม้หรูหรา)",
+                            "เป็นต้นกำเนิดกีฬาโอลิมปิก ระบอบประชาธิปไตย และวิธีการศึกษาประวัติศาสตร์ (เฮโรโดตัส - บิดาแห่งประวัติศาสตร์โลกตะวันตก)"
+                        ],
+                        stats: { K: 10, M: 10 },
+                        icon: "⚔️",
+                        accent: "#3b82f6"
+                    }
+                ]
+            },
+            {
+                stage: 2,
+                title: "ขั้นที่ 2: ระบบการปกครอง",
+                titleEn: "Governance",
+                subtitle: "เลือกรูปแบบการปกครองให้อารยธรรมของท่าน",
+                options_from_1A: [
+                    {
+                        id: "2A1",
+                        name: "ระบอบเทวราชา",
+                        subtitle: "God-King",
+                        desc: "ยกย่องผู้นำเป็นฟาโรห์ ตัวแทนเทพเจ้าบนโลกมนุษย์ เน้นพิธีกรรม ความเชื่อเรื่องชีวิตหลังความตาย และการสร้างพีระมิด",
+                        knowledge: [
+                            "ชาวอียิปต์นับถือเทพเจ้าหลายองค์และวิญญาณอดีตฟาโรห์ บูชาสัตว์ต่างๆ เช่น แมว นก สุนัข เหยี่ยว ซึ่งเป็นที่สิงสถิตของเทพเจ้า",
+                            "เทพเจ้าสำคัญ: เทพรา (ดวงอาทิตย์ หัวหน้าเทพ) โอซิริส (แม่น้ำไนล์ ผู้พิทักษ์ดวงวิญญาณหลังความตาย) เทวีไอซิส (ผู้สร้างและชุบชีวิตคนตาย)",
+                            "ฟาโรห์มีอำนาจเด็ดขาดในสมัยราชอาณาจักรใหม่ มีการขยายอาณาเขตเป็นจักรวรรดิ",
+                            "สมัยราชอาณาจักรเก่า: เจริญด้านวิทยาศาสตร์และศิลปกรรม สร้างพีระมิด / สมัยราชอาณาจักรกลาง: ยุคทองของอารยธรรม เจริญด้านชลประทาน"
+                        ],
+                        stats: { A: 10, C: 10 },
+                        icon: "👑",
+                        accent: "#eab308"
+                    },
+                    {
+                        id: "2A2",
+                        name: "จักรวรรดิวิศวกรรม",
+                        subtitle: "อิทธิพลโรมัน",
+                        desc: "ปกครองด้วยกฎหมายลายลักษณ์อักษร สร้างโครงสร้างพื้นฐานอย่างระบบท่อส่งน้ำประปา (Aqueduct) และสนามกีฬาโคลอสเซียม",
+                        knowledge: [
+                            "โรมันเกิดในอิตาลี ชนเผ่าลาติน คาบสมุทรยื่นลงทะเลเมดิเตอร์เรเนียนสะดวกต่อการติดต่อค้าขาย",
+                            "กฎหมายสิบสองโต๊ะ เป็นกฎหมายลายลักษณ์อักษรที่ให้ความยุติธรรมแก่ทุกชนชั้น มี 3 สภา: ซีเนต (ชนชั้นสูง) กองร้อย (ทหาร) ราษฎร (สามัญชน)",
+                            "วิศวกรรมโดดเด่น: ประตูโค้ง หลังคาโดม ท่อส่งน้ำประปา ถนนเพื่อการค้าและดูแลอาณานิคม สะพาน อัฒจันทร์ครึ่งวงกลม ใช้ปูนซีเมนต์",
+                            "มีการผ่าตัดทำคลอดทารกทางหน้าท้อง (ศัลยกรรมซีซาร์) สร้างโรงพยาบาล ระบบบำบัดน้ำเสีย ภาษาลาตินเป็นรากฐานของภาษาอังกฤษ สเปน โปรตุเกส"
+                        ],
+                        stats: { A: 10, E: 10 },
+                        icon: "🔨",
+                        accent: "#f97316"
+                    }
+                ],
+                options_from_1B: [
+                    {
+                        id: "2B1",
+                        name: "นครรัฐประชาธิปไตย",
+                        subtitle: "สายเอเธนส์",
+                        desc: "ให้สิทธิพลเมืองร่วมตั้งสภาราษฎร พัฒนาปัญญา ปรัชญา ศิลปะ และระบอบประชาธิปไตย",
+                        knowledge: [
+                            "นครรัฐเอเธนส์เป็นต้นกำเนิดของรัฐประชาธิปไตย มีสภาราษฎร์เป็นที่ประชุมของพลเมืองที่มีสิทธิออกเสียงทุกคน ทำหน้าที่พิจารณาร่างกฎหมาย",
+                            "การให้สิทธิเสรีภาพแก่ปัจเจกชนทำให้เกิดนักคิดนักปราชญ์มากมาย สร้างวิหารพาร์เธนอนถวายเทพีอะธีนา บนเนินเขาอโครโพลิส",
+                            "ศิลปะการแสดง: ละครกลางแจ้ง ซึ่งเป็นต้นกำเนิดของการแสดงในปัจจุบัน จิตรกรรมบนเครื่องปั้นดินเผา แจกัน คนโท",
+                            "การศึกษา: ประถมศึกษาเรียนไวยากรณ์ มหากาพย์อีเลียดและโอดิสซี ดนตรี ยิมนาสติก / สูงกว่าเรียนกวีนิพนธ์ การปกครอง จริยศาสตร์ จบอายุ 19 ปี"
+                        ],
+                        stats: { K: 10, E: 10 },
+                        icon: "📜",
+                        accent: "#06b6d4"
+                    },
+                    {
+                        id: "2B2",
+                        name: "นครรัฐการทหาร",
+                        subtitle: "สายสปาร์ตา",
+                        desc: "ปกครองแบบเผด็จการทหาร ฝึกฝนวินัยและความแข็งแกร่งของระเบียบวินัยกองทัพตั้งแต่เด็ก",
+                        knowledge: [
+                            "นครรัฐสปาร์ตาปกครองแบบทหารนิยม มีอำนาจเด็ดขาด ผู้ชายอายุ 20-60 ปีต้องถูกฝึกฝนให้เป็นทหาร",
+                            "ผู้หญิงต้องฝึกให้มีคุณภาพดี เพื่อเป็นแม่พันธุ์ที่ดี ต่อต้านการใช้ชีวิตหรูหราฟุ่มเฟือย ไม่สนับสนุนการค้าขาย",
+                            "ขัดขวางสิทธิของปัจเจกบุคคล เป็นต้นกำเนิดของการปกครองแบบเผด็จการแบบเบ็ดเสร็จ",
+                            "กองทัพสปาร์ตาใช้รูปขบวนฟาแลงซ์ (Phalanx) ที่มีประสิทธิภาพสูง ทหารสปาร์ตาเป็นที่เกรงขามทั่วกรีก"
+                        ],
+                        stats: { M: 10, A: 10 },
+                        icon: "🛡️",
+                        accent: "#ef4444"
+                    }
+                ]
+            },
+            {
+                stage: 3,
+                title: "ขั้นที่ 3: การติดต่อกับโลกภายนอก",
+                titleEn: "East-West Contact",
+                subtitle: "เลือกนโยบายการติดต่อระหว่างโลกตะวันตกกับโลกตะวันออก",
+                options: [
+                    {
+                        id: "3.1",
+                        name: "การค้าเส้นทางสายไหม",
+                        subtitle: "Silk Road Trade",
+                        desc: "เปิดเส้นทางการค้าบกข้ามทวีป ส่งออกข้าวสาลี น้ำมันมะกอก เหล้าองุ่น แลกเปลี่ยนกับเครื่องเทศ ผ้าไหม และหยกจากตะวันออก",
+                        knowledge: [
+                            "การค้าคือปัจจัยแรกของการติดต่อระหว่างโลกตะวันตกกับตะวันออก เกิดจากความก้าวหน้าทางเทคโนโลยีการต่อเรือ การประดิษฐ์ และความต้องการบริโภคสินค้า",
+                            "สินค้าสำคัญ: ข้าวสาลีจากอียิปต์ น้ำมันมะกอก เหล้าองุ่นจากกรีกและโรมัน เครื่องเทศจากอินเดีย ผ้าขนสัตว์จากฟินิเชียน เครื่องแก้วจากอียิปต์ ทองคำ ผ้าไหมและหยกจากจีน",
+                            "จีนในสมัยราชวงศ์ฮั่นมีนโยบายส่งเสริมการค้ากับอารยธรรมตะวันตก จึงสร้างเส้นทางสายไหม",
+                            "ผลทางเศรษฐกิจ: ทำให้คนในแต่ละอารยธรรมอยู่ดีกินดี มีการพัฒนาเส้นทางบกและทางทะเล ศิลปะวิทยาการเจริญรุ่งเรือง"
+                        ],
+                        stats: { E: 10, C: 10 },
+                        icon: "🪙",
+                        accent: "#f59e0b"
+                    },
+                    {
+                        id: "3.2",
+                        name: "การทูตและนักเดินทาง",
+                        subtitle: "แบบมาร์โค โปโล",
+                        desc: "ส่งผู้แทนและนักเดินทางออกสำรวจดินแดน บันทึกความรู้และเรียนรู้วิทยาการจากต่างทวีป",
+                        knowledge: [
+                            "มาร์โค โปโล พ่อค้านักเดินเรือชาวอิตาลี เคยมารับราชการในราชสำนักจีน บันทึกของเขา 'Il Milione' ทำให้ชาวตะวันตกรู้จักจีนมากขึ้น",
+                            "เฮโรโดตัส เขียนหนังสือประวัติศาสตร์ ทำให้คนฝั่งตะวันตกเข้าใจฝั่งตะวันออกมากขึ้น",
+                            "ผลทางสังคม: เกิดการแลกเปลี่ยนวัฒนธรรม กฎหมาย ระบบการปกครอง ศาสนา ความเชื่อ การแพทย์ เทคโนโลยี ทำให้ผู้คนมีชีวิตความเป็นอยู่ที่ดีขึ้น",
+                            "จีนพัฒนาเทคโนโลยีสำคัญ: เข็มทิศ (ทำให้เดินทางทางทะเลไปไกลขึ้น) กระดาษ ดินปืน การพิมพ์"
+                        ],
+                        stats: { K: 10, C: 10 },
+                        icon: "🧭",
+                        accent: "#14b8a6"
+                    },
+                    {
+                        id: "3.3",
+                        name: "นโยบายพึ่งพาตนเอง",
+                        subtitle: "Isolationism",
+                        desc: "เน้นพัฒนาทรัพยากรภายใน ป้องกันการรุกราน และรักษาเอกลักษณ์วัฒนธรรมเดิมไว้อย่างเข้มงวด",
+                        knowledge: [
+                            "การขยายอำนาจและการค้ามักมาพร้อมสงคราม สงครามครูเสดเป็นตัวอย่างความขัดแย้งระหว่างตะวันตก-ตะวันออก",
+                            "ผลทางการเมือง: การรุกรานดินแดนทำให้บางดินแดนล่มสลาย ระบบการปกครอง 2 แบบ: ทางตรง (รัฐเข้าไปปกครองเมืองขึ้นเอง) และทางอ้อม (ให้เมืองขึ้นปกครองด้วยตนเอง)",
+                            "ศาสนาคริสต์เกิดในปาเลสไตน์แพร่เข้าจักรวรรดิโรมัน ศาสนาอิสลามเกิดในตะวันออกกลางแผ่อิทธิพลอย่างรวดเร็ว",
+                            "การปิดประเทศช่วยรักษาเอกลักษณ์วัฒนธรรม แต่อาจพลาดโอกาสทางการค้าและวิทยาการใหม่"
+                        ],
+                        stats: { M: 10, A: 10 },
+                        icon: "🔒",
+                        accent: "#64748b"
+                    }
+                ]
+            },
+            {
+                stage: 4,
+                title: "ขั้นที่ 4: มรดกยุคทอง",
+                titleEn: "Golden Age Legacy",
+                subtitle: "เลือกสร้างมรดกยุคทองให้อารยธรรมของท่าน",
+                options: [
+                    {
+                        id: "4.1",
+                        name: "เน้นสิ่งมหัศจรรย์และภูมิปัญญา",
+                        subtitle: "Wonders & Wisdom",
+                        desc: "ทุ่มเทสร้างมรดกทางสถาปัตยกรรม รวบรวมตำราปรัชญา และสร้างกฎหมายหลักของอารยธรรม",
+                        knowledge: [
+                            "มรดกยุคโบราณ: แนวคิดกฎหมายโรมัน (กฎหมายสิบสองโต๊ะ) ปรัชญากรีก สถาปัตยกรรมพีระมิด วิหารพาร์เธนอน โคลอสเซียม",
+                            "ด้านการแพทย์: ฮิปโปเครตีส พบว่าโรคเกิดจากธรรมชาติ ไม่ใช่การลงโทษของพระเจ้า กำหนดหลักจรรยาแพทย์ที่ปฏิบัติมาจนปัจจุบัน",
+                            "วรรณกรรม: มหากาพย์อีเลียดและโอดิสซีของโฮเมอร์ ให้ความงดงามทางภาษาและเนื้อเรื่องวิถีชีวิตชาวกรีก",
+                            "ดาราศาสตร์: ทาเลสคำนวณปีหนึ่งมี 365 วัน ทำนายสุริยุปราคา / อริสโตเติลพิสูจน์โลกมีลักษณะกลม / ไพธาโกรัสเสนอว่าเอกภพเป็นทรงกลม"
+                        ],
+                        stats: { A: 10, K: 10 },
+                        icon: "📖",
+                        accent: "#a855f7"
+                    },
+                    {
+                        id: "4.2",
+                        name: "เน้นศูนย์กลางการค้าโลก",
+                        subtitle: "Global Trade Hub",
+                        desc: "สร้างเมืองท่า มหานครการค้า และระบบกองทัพคุ้มกันเส้นทางการแลกเปลี่ยนสินค้าข้ามทวีป",
+                        knowledge: [
+                            "โรมันมีพื้นที่กว้างใหญ่ ตลาดใหญ่ อัตราเก็บภาษีต่ำ ใช้สกุลเงินเดียวกัน สร้างถนนเชื่อมการค้ากับอารยธรรมต่างๆ ทั่วทวีปเอเชีย อินเดีย อียิปต์",
+                            "สินค้าจากอียิปต์: ทองคำ ข้าวสาลี ผ้าลินิน เครื่องแก้ว / จากกรีก-โรมัน: น้ำมันมะกอก เหล้าองุ่น เครื่องปั้นดินเผา",
+                            "เมืองท่าสำคัญ: อเล็กซานเดรีย คอนสแตนติโนเปิล เวนิส เป็นจุดเชื่อมการค้าโลกตะวันตก-ตะวันออก",
+                            "เส้นทางทะเลเชื่อมฟินิเชียน อียิปต์ กรีก โรมัน ต่อมาจีนประดิษฐ์เข็มทิศทำให้เดินทางทางทะเลไปไกลขึ้น"
+                        ],
+                        stats: { E: 10, M: 10 },
+                        icon: "🌍",
+                        accent: "#10b981"
+                    }
+                ]
+            }
+        ];
+
+        // Dimension metadata
+        const DIMS = {
+            M: { name: "การทหาร", en: "Military", icon: "⚔️", color: "#ef4444", bg: "rgba(239,68,68,0.12)", gradient: "from-red-500 to-rose-600" },
+            E: { name: "เศรษฐกิจ", en: "Economy", icon: "💰", color: "#f59e0b", bg: "rgba(245,158,11,0.12)", gradient: "from-amber-500 to-yellow-600" },
+            K: { name: "ปัญญา", en: "Knowledge", icon: "📚", color: "#3b82f6", bg: "rgba(59,130,246,0.12)", gradient: "from-blue-500 to-indigo-600" },
+            A: { name: "สถาปัตยกรรม", en: "Architecture", icon: "🏛️", color: "#a855f7", bg: "rgba(168,85,247,0.12)", gradient: "from-purple-500 to-violet-600" },
+            C: { name: "วัฒนธรรม", en: "Culture", icon: "🎭", color: "#06b6d4", bg: "rgba(6,182,212,0.12)", gradient: "from-cyan-500 to-teal-600" }
+        };
+
+        // Civilization titles
+        const CIV_TITLES = {
+            "AE": "จักรวรรดิวิศวกรรมการค้า",
+            "EK": "อาณาจักรปัญญาแห่งการค้า",
+            "EM": "จักรวรรดิกองทัพนักค้า",
+            "AK": "อาณาจักรปราชญ์นักสร้าง",
+            "CK": "อาณาจักรวัฒนธรรมแห่งปัญญา",
+            "AM": "จักรวรรดิป้อมปราการ",
+            "CM": "อาณาจักรนักรบผู้ศรัทธา",
+            "AC": "อาณาจักรมรดกโลก",
+            "CE": "จักรวรรดิวัฒนธรรมการค้า",
+            "KM": "อาณาจักรนักปราชญ์นักรบ",
+            "E": "จักรวรรดิการค้าโลก",
+            "K": "อาณาจักรปราชญ์และภูมิปัญญา",
+            "M": "จักรวรรดิแห่งการทหาร",
+            "A": "อาณาจักรสถาปัตย์มหัศจรรย์",
+            "C": "อาณาจักรวัฒนธรรมอันรุ่งเรือง",
+            "default": "อารยธรรมแห่งการผจญภัย"
+        };
+
+        // ==================== SVG RADAR CHART ====================
+        function RadarChart({ stats, maxVal = 50, size = 300 }) {
+            const center = size / 2;
+            const radius = size / 2 - 35;
+            const dims = Object.keys(DIMS);
+            const angleStep = (2 * Math.PI) / dims.length;
+
+            const getPoint = (index, value) => {
+                const angle = angleStep * index - Math.PI / 2;
+                const r = (Math.min(value, maxVal) / maxVal) * radius;
+                return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) };
+            };
+
+            return (
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                    <defs>
+                        <radialGradient id="radarGlow">
+                            <stop offset="0%" stopColor="rgba(139,92,246,0.3)" />
+                            <stop offset="100%" stopColor="rgba(139,92,246,0)" />
+                        </radialGradient>
+                    </defs>
+                    {/* Background glow */}
+                    <circle cx={center} cy={center} r={radius} fill="url(#radarGlow)" />
+
+                    {/* Grid rings */}
+                    {[0.2, 0.4, 0.6, 0.8, 1].map((level, i) => {
+                        const pts = dims.map((_, idx) => {
+                            const a = angleStep * idx - Math.PI / 2;
+                            return `${center + radius * level * Math.cos(a)},${center + radius * level * Math.sin(a)}`;
+                        }).join(' ');
+                        return <polygon key={i} points={pts} fill="none" stroke="rgba(139,92,246,0.12)" strokeWidth="1" />;
+                    })}
+
+                    {/* Axis lines */}
+                    {dims.map((_, idx) => {
+                        const a = angleStep * idx - Math.PI / 2;
+                        return <line key={idx} x1={center} y1={center}
+                            x2={center + radius * Math.cos(a)} y2={center + radius * Math.sin(a)}
+                            stroke="rgba(139,92,246,0.15)" strokeWidth="1" />;
+                    })}
+
+                    {/* Data area */}
+                    <polygon
+                        points={dims.map((dim, idx) => { const p = getPoint(idx, stats[dim] || 0); return `${p.x},${p.y}`; }).join(' ')}
+                        fill="rgba(139,92,246,0.2)" stroke="url(#radarStroke)" strokeWidth="2.5"
+                    />
+                    <defs>
+                        <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#8b5cf6" /><stop offset="100%" stopColor="#06b6d4" />
+                        </linearGradient>
+                    </defs>
+
+                    {/* Points & Labels */}
+                    {dims.map((dim, idx) => {
+                        const p = getPoint(idx, stats[dim] || 0);
+                        const a = angleStep * idx - Math.PI / 2;
+                        const lx = center + (radius + 25) * Math.cos(a);
+                        const ly = center + (radius + 25) * Math.sin(a);
+                        return (
+                            <g key={dim}>
+                                <circle cx={p.x} cy={p.y} r="6" fill={DIMS[dim].color} stroke="#fff" strokeWidth="2" />
+                                <circle cx={p.x} cy={p.y} r="10" fill={DIMS[dim].color} opacity="0.2" />
+                                <text x={lx} y={ly - 6} textAnchor="middle" fill={DIMS[dim].color} fontSize="11" fontWeight="700">
+                                    {DIMS[dim].icon}
+                                </text>
+                                <text x={lx} y={ly + 8} textAnchor="middle" fill="#94a3b8" fontSize="10">
+                                    {stats[dim] || 0}
+                                </text>
+                            </g>
+                        );
+                    })}
+                </svg>
+            );
+        }
+
+        // ==================== CANVAS PIXEL ART ENGINE ====================
+        
+// ==================== CANVAS PIXEL ART ENGINE ====================
+        
+const PixelCivilization = ({ choices, stage, resultMode = false }) => {
+    const canvasRef = React.useRef(null);
+    const [imagesLoaded, setImagesLoaded] = React.useState(false);
+    const assets = React.useRef({});
+    
+    const c1 = choices[0]?.id;
+    const c2 = choices[1]?.id;
+    const c3 = choices[2]?.id;
+    const c4 = choices[3]?.id;
+    const civilization = c1 === '1A' ? 'Egypt' : c1 === '1B' ? 'Greece' : 'None';
+    
+    // Load images from Base64 IMAGE_ASSETS (bypasses CORS restrictions)
+    React.useEffect(() => {
+        let loaded = 0;
+        const total = Object.keys(IMAGE_ASSETS).length;
+        
+        const removeGreenScreen = (img, key) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0);
+            
+            // Only process green screen for overlay sprites (not backgrounds)
+            if (!key.startsWith('bg_')) { 
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    // Pure green screen removal (tolerance)
+                    if (g > 100 && g > r * 1.2 && g > b * 1.2) {
+                        data[i+3] = 0; // Make transparent
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+            return canvas;
+        };
+
+        for (const [key, dataUri] of Object.entries(IMAGE_ASSETS)) {
+            const img = new Image();
+            img.onload = () => {
+                assets.current[key] = removeGreenScreen(img, key);
+                loaded++;
+                if (loaded === total) setImagesLoaded(true);
+            };
+            img.onerror = () => {
+                console.error("Failed to load", key);
+                loaded++;
+                if (loaded === total) setImagesLoaded(true);
+            };
+            img.src = dataUri;
+        }
+    }, []);
+
+    const [blinkPhase, setBlinkPhase] = React.useState('none');
+
+    React.useEffect(() => {
+        if (choices.length < 2) return;
+        setBlinkPhase('fast');
+        const t1 = setTimeout(() => setBlinkPhase('medium'), 800);
+        const t2 = setTimeout(() => setBlinkPhase('slow'), 2500);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+    }, [choices.length]);
+
+    // Coordinates for the new features in each choice
+    const FX_COORDS = {
+        '2A1': { x: 45, y: 40 }, // Pyramids
+        '2A2': { x: 50, y: 45 }, // Aqueduct
+        '2B1': { x: 50, y: 30 }, // Parthenon
+        '2B2': { x: 50, y: 60 }, // Sparta Phalanx
+        '3.1': { x: 35, y: 70 }, // Silk Road
+        '3.2': { x: 65, y: 65 }, // Diplomacy
+        '3.3': { x: 20, y: 50 }, // Isolationism walls
+        '4.1': { x: 70, y: 35 }, // Wonders
+        '4.2': { x: 50, y: 75 }, // Trade Hub
+    };
+    
+    const latestChoiceId = choices.length >= 2 ? choices[choices.length - 1]?.id : null;
+    const fxCoord = latestChoiceId ? FX_COORDS[latestChoiceId] : null;
+
+    // Draw Static Scene
+    React.useEffect(() => {
+        if (!imagesLoaded) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+        
+        // Build scene key from choices, try most specific first then fallback
+        const c1 = choices[0]?.id;
+        const c2 = choices[1]?.id;
+        const c3 = choices[2]?.id;
+        const c4 = choices[3]?.id;
+        
+        // Try keys from most specific to least specific
+        const candidateKeys = [];
+        if (c4) candidateKeys.push(`scene_${c1}_${c2}_${c3}_${c4}`.replace(/\./g,''));
+        if (c3) candidateKeys.push(`scene_${c1}_${c2}_${c3}`.replace(/\./g,''));
+        if (c2) candidateKeys.push(`scene_${c1}_${c2}`);
+        if (c1) candidateKeys.push(`scene_${c1}`);
+        // Final fallback to original backgrounds
+        candidateKeys.push(c1 === '1A' ? 'bg_egypt' : c1 === '1B' ? 'bg_greece' : null);
+        
+        const sceneKey = candidateKeys.find(k => k && assets.current[k]) || null;
+        const sceneImg = sceneKey ? assets.current[sceneKey] : null;
+        
+        // Clear
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, W, H);
+        
+        if (sceneImg) {
+            // Cover-fit: fill canvas preserving aspect ratio
+            const imgAspect = sceneImg.width / sceneImg.height;
+            const canvasAspect = W / H;
+            let sx = 0, sy = 0, sw = sceneImg.width, sh = sceneImg.height;
+            if (imgAspect > canvasAspect) {
+                sw = sceneImg.height * canvasAspect;
+                sx = (sceneImg.width - sw) / 2;
+            } else {
+                sh = sceneImg.width / canvasAspect;
+                sy = (sceneImg.height - sh) / 2;
+            }
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(sceneImg, sx, sy, sw, sh, 0, 0, W, H);
+        } else {
+            // No image at all - draw gradient placeholder
+            const grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, '#1e293b');
+            grad.addColorStop(1, '#0f172a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.font = '20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('เลือกอารยธรรมเพื่อเริ่มต้น', W/2, H/2);
+            ctx.textAlign = 'left';
+        }
+        
+        // Subtle vignette for cinematic feel
+        const vig = ctx.createRadialGradient(W/2, H/2, W*0.2, W/2, H/2, W*0.75);
+        vig.addColorStop(0, 'transparent');
+        vig.addColorStop(1, 'rgba(0,0,0,0.45)');
+        ctx.fillStyle = vig;
+        ctx.fillRect(0, 0, W, H);
+
+    }, [imagesLoaded, choices, stage]);
+
+    const baseClass = resultMode ? "w-full max-w-4xl mx-auto h-[400px] mb-8" : "w-full max-w-4xl mx-auto h-72 md:h-96 mb-6";
+    
+    return (
+        <div className={`${baseClass} relative rounded-3xl border border-white/10 overflow-hidden bg-[#0f172a] shadow-2xl anim-scale-in`}
+             style={{ boxShadow: '0 15px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.9)', animationDelay: '300ms' }}>
+            {!imagesLoaded && <div className="absolute inset-0 flex items-center justify-center text-white text-lg font-bold animate-pulse z-10 bg-black/50">กำลังโหลดฉาก Voxel...</div>}
+            <canvas 
+                ref={canvasRef} 
+                width={800} 
+                height={400} 
+                className="w-full h-full object-cover relative z-0"
+                style={{ imageRendering: 'auto' }}
+            />
+            
+            {/* Visual Effect Overlay */}
+            {fxCoord && (
+                <div 
+                    className="absolute z-10 pointer-events-none transition-all duration-1000 ease-out"
+                    style={{ left: `${fxCoord.x}%`, top: `${fxCoord.y}%`, transform: 'translate(-50%, -50%)' }}
+                >
+                    <div className="relative">
+                        <div className={`absolute -top-2 -left-6 text-amber-200 text-xl fx-star fx-blink-${blinkPhase}`} style={{ textShadow: '0 0 15px #fbbf24', animationDelay: '0.1s' }}>✦</div>
+                        <div className={`absolute -top-6 -left-2 text-yellow-300 text-3xl fx-star fx-blink-${blinkPhase}`} style={{ textShadow: '0 0 20px #f59e0b' }}>✦</div>
+                        <div className={`absolute -top-2 left-4 text-amber-200 text-xl fx-star fx-blink-${blinkPhase}`} style={{ textShadow: '0 0 15px #fbbf24', animationDelay: '0.2s' }}>✦</div>
+                    </div>
+                </div>
+            )}
+            <div className="absolute top-4 left-4 text-xs font-bold text-white/50 bg-black/40 px-3 py-1 rounded-md border border-white/10 z-20">
+                VOXEL_ENGINE: V3.0
+            </div>
+            {!resultMode && (
+                <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+                    {[0,1,2,3].map(i => (
+                        <div key={i} className={`w-3 h-3 rounded-full transition-all duration-500 ${choices[i] ? 'bg-purple-500 shadow-[0_0_8px_#a855f7]' : 'bg-gray-700/50'}`} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+        // ==================== MAIN APP ====================
+        function App() {
+            const [phase, setPhase] = useState('intro');
+            const [stage, setStage] = useState(0);
+            const [stats, setStats] = useState({ M: 0, E: 0, K: 0, A: 0, C: 0 });
+            const [choices, setChoices] = useState([]);
+            const [openKnowledge, setOpenKnowledge] = useState(null);
+            const [transitioning, setTransitioning] = useState(false);
+
+            const getOptions = useCallback(() => {
+                const data = GAME_DATA[stage];
+                if (!data) return [];
+                if (stage === 1 && choices.length > 0) {
+                    return choices[0].id === '1A' ? data.options_from_1A : data.options_from_1B;
+                }
+                return data.options;
+            }, [stage, choices]);
+
+            const handleChoice = useCallback((option) => {
+                setTransitioning(true);
+                const newStats = { ...stats };
+                Object.entries(option.stats).forEach(([k, v]) => { newStats[k] += v; });
+                setTimeout(() => {
+                    setStats(newStats);
+                    setChoices([...choices, option]);
+                    if (stage >= 3) setPhase('result');
+                    else setStage(stage + 1);
+                    setTransitioning(false);
+                    setOpenKnowledge(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 500);
+            }, [stats, choices, stage]);
+
+            const score = useMemo(() => {
+                const weighted = {};
+                let total = 0;
+                const mults = {};
+                Object.entries(stats).forEach(([d, v]) => {
+                    let m = 1;
+                    if (v >= 40) m = 2.0;
+                    else if (v >= 30) m = 1.5;
+                    mults[d] = m;
+                    weighted[d] = Math.round(v * m);
+                    total += weighted[d];
+                });
+                let rank = 'D', rc = '#6b7280', rg = 'rgba(107,114,128,0.4)';
+                if (total >= 135) { rank = 'S'; rc = '#ffd700'; rg = 'rgba(255,215,0,0.5)'; }
+                else if (total >= 120) { rank = 'A'; rc = '#a855f7'; rg = 'rgba(168,85,247,0.5)'; }
+                else if (total >= 110) { rank = 'B'; rc = '#3b82f6'; rg = 'rgba(59,130,246,0.5)'; }
+                else if (total >= 95) { rank = 'C'; rc = '#22c55e'; rg = 'rgba(34,197,94,0.5)'; }
+                return { weighted, total, rank, rc, rg, mults };
+            }, [stats]);
+
+            const civTitle = useMemo(() => {
+                const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+                if (sorted[0][1] >= 30 && sorted[1][1] >= 20) {
+                    const key = [sorted[0][0], sorted[1][0]].sort().join('');
+                    return CIV_TITLES[key] || CIV_TITLES.default;
+                }
+                if (sorted[0][1] >= 30) return CIV_TITLES[sorted[0][0]] || CIV_TITLES.default;
+                return CIV_TITLES.default;
+            }, [stats]);
+
+            const reset = () => {
+                setPhase('intro'); setStage(0);
+                setStats({ M: 0, E: 0, K: 0, A: 0, C: 0 });
+                setChoices([]); setOpenKnowledge(null);
+                window.scrollTo({ top: 0 });
+            };
+
+            // ========== INTRO ==========
+            if (phase === 'intro') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-6 page-enter">
+                        <div className="text-center max-w-2xl">
+                            <div className="mb-10">
+                                <div className="text-8xl mb-6 float-anim">⚜️</div>
+                                <h1 className="font-cinzel text-4xl md:text-6xl font-bold mb-3 text-shimmer leading-tight">
+                                    Chronicles of the Ancients
+                                </h1>
+                                <h2 className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+                                    ศึกนักท่องเวลาตะลุย 4 อารยธรรม
+                                </h2>
+                                <p className="text-gray-500 text-sm">Civilization Choice RPG</p>
+                            </div>
+
+                            <div className="glass rounded-2xl p-8 mb-10">
+                                <p className="text-gray-300 text-lg leading-relaxed mb-6">
+                                    ย้อนเวลากลับไปสู่ยุคอารยธรรมโบราณ เลือกเส้นทางสร้างจักรวรรดิของคุณ
+                                    ผ่าน <span className="text-purple-400 font-semibold">4 ขั้นตอนสำคัญ</span> ตั้งแต่จุดกำเนิดถิ่นฐาน
+                                    ระบบการปกครอง การติดต่อกับโลกภายนอก ไปจนถึงมรดกยุคทอง
+                                </p>
+
+                                <div className="flex flex-wrap justify-center gap-3 mb-6">
+                                    {Object.entries(DIMS).map(([k, d]) => (
+                                        <div key={k} className="flex items-center gap-1.5 rounded-full px-4 py-1.5"
+                                            style={{ backgroundColor: d.bg }}>
+                                            <span className="text-sm">{d.icon}</span>
+                                            <span className="text-sm font-medium" style={{ color: d.color }}>{d.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+                                    <span>🎮 24 รูปแบบอารยธรรม</span>
+                                    <span>⏱️ ~10 นาที</span>
+                                    <span>📊 5 มิติพลัง</span>
+                                    <span>🏆 5 ระดับอันดับ</span>
+                                </div>
+                            </div>
+
+                            <button onClick={() => setPhase('playing')} id="start-game-btn"
+                                className="relative px-14 py-5 rounded-2xl font-bold text-xl
+                                    bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600
+                                    hover:from-purple-500 hover:via-violet-500 hover:to-blue-500
+                                    transform hover:scale-105 active:scale-95 transition-all duration-300
+                                    shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 btn-pulse">
+                                🏛️ เริ่มสร้างอารยธรรม
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // ========== PLAYING ==========
+            if (phase === 'playing') {
+                const data = GAME_DATA[stage];
+                const options = getOptions();
+
+                return (
+                    <div className={`min-h-screen p-4 md:p-8 page-enter transition-all duration-500 ${transitioning ? 'opacity-30 scale-[0.98]' : 'opacity-100 scale-100'}`}>
+                        <div className="max-w-5xl mx-auto">
+                            {/* Header */}
+                            <div className="mb-6 anim-fade-up">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h1 className="font-cinzel text-lg font-bold text-purple-300 flex items-center gap-2">
+                                        <span className="text-xl">⚜️</span> Chronicles of the Ancients
+                                    </h1>
+                                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                                        <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                                            ขั้นตอน {stage + 1}/4
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Progress */}
+                                <div className="relative w-full h-1.5 bg-gray-800/60 rounded-full overflow-hidden mb-4">
+                                    <div className="h-full rounded-full bg-gradient-to-r from-purple-500 via-violet-500 to-cyan-500 progress-fill"
+                                        style={{ width: `${((stage) / 4) * 100}%` }} />
+                                </div>
+
+                                <div className="flex justify-between">
+                                    {GAME_DATA.map((s, i) => (
+                                        <div key={i} className={`flex items-center gap-1.5 text-xs transition-colors duration-300
+                                            ${i < stage ? 'text-purple-400' : i === stage ? 'text-white' : 'text-gray-600'}`}>
+                                            <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
+                                                border transition-all duration-300
+                                                ${i < stage ? 'bg-purple-600/80 border-purple-500' :
+                                                i === stage ? 'bg-gradient-to-br from-purple-500 to-blue-500 border-purple-400 shadow-md shadow-purple-500/30' :
+                                                'bg-gray-800/50 border-gray-700'}`}>
+                                                {i < stage ? '✓' : i + 1}
+                                            </span>
+                                            <span className="hidden md:inline font-medium">{s.titleEn}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="grid grid-cols-5 gap-2 mb-8 anim-fade-up" style={{ animationDelay: '100ms' }}>
+                                {Object.entries(DIMS).map(([k, d]) => (
+                                    <div key={k} className="glass rounded-xl p-2.5 text-center group hover:border-white/10 transition-all">
+                                        <div className="text-xl mb-0.5">{d.icon}</div>
+                                        <div className="text-[10px] text-gray-500 mb-0.5">{d.name}</div>
+                                        <div className="text-xl font-black tabular-nums" style={{ color: d.color }}>{stats[k]}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Title */}
+                            <div className="text-center mb-10 anim-fade-up" style={{ animationDelay: '200ms' }}>
+                                <div className="inline-block px-4 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium mb-3">
+                                    {data.titleEn}
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-extrabold mb-2 bg-gradient-to-r from-purple-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
+                                    {data.title}
+                                </h2>
+                                <p className="text-gray-400 text-sm">{data.subtitle}</p>
+                            </div>
+
+                            {/* PIXEL CIVILIZATION GRAPHIC */}
+                            <PixelCivilization choices={choices} stage={stage} />
+
+                            {/* Choice Cards */}
+                            <div className={`grid gap-6 ${options.length === 3 ? 'lg:grid-cols-3' : 'md:grid-cols-2'}`}>
+                                {options.map((opt, idx) => (
+                                    <div key={opt.id} className="anim-fade-up" style={{ animationDelay: `${300 + idx * 120}ms` }}>
+                                        <div className="gradient-border-wrap">
+                                            <div className="choice-card bg-[#0c0c1a]/95 rounded-[15px] p-6 h-full"
+                                                onClick={() => handleChoice(opt)} id={`choice-${opt.id}`}>
+
+                                                {/* Header */}
+                                                <div className="flex items-start gap-3 mb-4">
+                                                    <span className="text-4xl flex-shrink-0">{opt.icon}</span>
+                                                    <div>
+                                                        <h3 className="font-bold text-lg leading-snug mb-0.5">{opt.name}</h3>
+                                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full"
+                                                            style={{ backgroundColor: opt.accent + '20', color: opt.accent }}>
+                                                            {opt.subtitle}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Description */}
+                                                <p className="text-gray-400 text-sm leading-relaxed mb-4">{opt.desc}</p>
+
+                                                {/* Stats Preview */}
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {Object.entries(opt.stats).map(([k, v]) => (
+                                                        <span key={k} className="px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1"
+                                                            style={{ backgroundColor: DIMS[k].bg, color: DIMS[k].color }}>
+                                                            {DIMS[k].icon} +{v} {DIMS[k].name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                {/* Knowledge Toggle */}
+                                                <button onClick={(e) => { e.stopPropagation(); setOpenKnowledge(opt.id); }}
+                                                    className="relative z-10 w-full py-2.5 rounded-xl text-xs font-semibold
+                                                        bg-gradient-to-r from-purple-500/10 to-blue-500/10
+                                                        hover:from-purple-500/20 hover:to-blue-500/20
+                                                        text-purple-300 border border-purple-500/20 transition-all mb-2"
+                                                    id={`knowledge-${opt.id}`}>
+                                                    📖 เปิดอ่านความรู้ประวัติศาสตร์
+                                                </button>
+
+                                                {/* Select Button */}
+                                                <button onClick={(e) => { e.stopPropagation(); handleChoice(opt); }}
+                                                    className="relative z-10 w-full mt-3 py-3.5 rounded-xl font-bold text-sm
+                                                        bg-gradient-to-r from-purple-600 to-blue-600
+                                                        hover:from-purple-500 hover:to-blue-500
+                                                        active:scale-[0.98] transition-all duration-300
+                                                        shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40"
+                                                    id={`select-${opt.id}`}>
+                                                    ⚡ เลือกเส้นทางนี้
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Previous choices */}
+                            {choices.length > 0 && (
+                                <div className="mt-8 glass rounded-xl p-4 anim-fade-up" style={{ animationDelay: '600ms' }}>
+                                    <h4 className="text-xs font-bold text-gray-400 mb-2">📋 ตัวเลือกที่ผ่านมา:</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {choices.map((c, i) => (
+                                            <span key={i} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium"
+                                                style={{ backgroundColor: c.accent + '15', color: c.accent, border: `1px solid ${c.accent}30` }}>
+                                                {c.icon} {c.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Knowledge Modal Overlay */}
+                            {openKnowledge && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                                    onClick={() => setOpenKnowledge(null)}>
+                                    {getOptions().filter(o => o.id === openKnowledge).map(opt => (
+                                        <div key={opt.id} className="bg-[#0f172a] border border-purple-500/30 rounded-3xl p-6 max-w-2xl w-full shadow-2xl relative"
+                                            onClick={e => e.stopPropagation()}>
+                                            <button 
+                                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white"
+                                                onClick={() => setOpenKnowledge(null)}>
+                                                ✕
+                                            </button>
+                                            <div className="mb-6">
+                                                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 flex items-center gap-2">
+                                                    <span className="text-3xl">📚</span> สาระความรู้: {opt.name}
+                                                </h3>
+                                                <p className="text-purple-300/70 text-sm mt-1">{opt.subtitle}</p>
+                                            </div>
+                                            
+                                            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                                {opt.knowledge.map((item, i) => (
+                                                    <div key={i} className="flex gap-3 bg-purple-900/20 p-4 rounded-xl border border-purple-500/10">
+                                                        <span className="text-purple-400 text-lg flex-shrink-0">▸</span>
+                                                        <p className="text-sm text-purple-100/90 leading-relaxed">{item}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            
+                                            <button 
+                                                className="w-full mt-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg transition-all"
+                                                onClick={() => setOpenKnowledge(null)}>
+                                                ปิดหน้าต่าง
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
+            // ========== RESULT ==========
+            if (phase === 'result') {
+                const { weighted, total, rank, rc, rg, mults } = score;
+
+                return (
+                    <div className="min-h-screen p-4 md:p-8 page-enter">
+                        <div className="max-w-6xl mx-auto">
+                            {/* Header */}
+                            <div className="text-center mb-10 anim-fade-up">
+                                <div className="text-4xl mb-3 float-anim">⚜️</div>
+                                <h1 className="font-cinzel text-3xl md:text-4xl font-bold text-shimmer mb-2">
+                                    ผลลัพธ์อารยธรรมของท่าน
+                                </h1>
+                                <p className="text-gray-500">ประวัติศาสตร์ได้ถูกจารึกแล้ว</p>
+                            </div>
+
+                            {/* === SHOWCASE BANNER === */}
+                            <div className="showcase-banner rounded-3xl p-6 md:p-10 mb-10 anim-scale-in" style={{ animationDelay: '200ms' }}>
+                                
+                                {/* Final Pixel Art Display */}
+                                <PixelCivilization choices={choices} stage={4} resultMode={true} />
+
+                                <div className="grid md:grid-cols-[1.2fr_auto_1.3fr] gap-8 items-center">
+
+                                    {/* LEFT */}
+                                    <div className="text-center md:text-left anim-slide-left" style={{ animationDelay: '400ms' }}>
+                                        {/* Rank */}
+                                        <div className="inline-flex items-center justify-center mb-5">
+                                            <div className="rank-glow relative w-32 h-32 rounded-full flex items-center justify-center"
+                                                style={{ background: `radial-gradient(circle, ${rg} 0%, transparent 70%)`, border: `3px solid ${rc}`, color: rc }}>
+                                                <div className="text-center">
+                                                    <div className="text-xs font-bold text-gray-400 mb-1">RANK</div>
+                                                    <div className="font-cinzel text-6xl font-black">{rank}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <h2 className="text-2xl md:text-3xl font-black mb-3 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
+                                            {civTitle}
+                                        </h2>
+
+                                        <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl glass mb-5">
+                                            <span className="text-gray-400 text-sm">คะแนนรวม</span>
+                                            <span className="text-3xl font-black tabular-nums" style={{ color: rc }}>{total}</span>
+                                            <span className="text-gray-600 text-sm">/ 160</span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                            {choices.map((c, i) => (
+                                                <span key={i} className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                                                    style={{ backgroundColor: c.accent + '15', color: c.accent, border: `1px solid ${c.accent}25` }}>
+                                                    {c.icon} {c.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* CENTER: Visual */}
+                                    <div className="flex flex-col items-center gap-5 anim-scale-in" style={{ animationDelay: '600ms' }}>
+                                        {/* Stacked icons */}
+                                        <div className="relative w-72 h-44 rounded-2xl bg-gradient-to-b from-indigo-950/60 to-amber-950/30 border border-white/10 overflow-hidden">
+                                            <div className="absolute inset-0 flex items-end justify-center gap-5 p-5">
+                                                {choices.map((c, i) => (
+                                                    <div key={i} className={`flex flex-col items-center icon-bob-${(i % 4) + 1}`}>
+                                                        <span className="text-5xl mb-1 drop-shadow-lg">{c.icon}</span>
+                                                        <span className="text-[9px] text-gray-400 text-center max-w-[65px] leading-tight font-medium">
+                                                            {c.subtitle}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-amber-900/20 to-transparent" />
+                                        </div>
+
+                                        <RadarChart stats={stats} />
+                                    </div>
+
+                                    {/* RIGHT: Stats */}
+                                    <div className="anim-slide-right" style={{ animationDelay: '500ms' }}>
+                                        <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
+                                            <span className="text-xl">📊</span>
+                                            <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">
+                                                พลังอารยธรรม 5 มิติ
+                                            </span>
+                                        </h3>
+
+                                        <div className="space-y-3">
+                                            {Object.entries(DIMS).map(([k, d]) => {
+                                                const base = stats[k];
+                                                const mult = mults[k];
+                                                const final = weighted[k];
+                                                return (
+                                                    <div key={k} className="glass rounded-xl p-3.5">
+                                                        <div className="flex items-center justify-between mb-1.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-lg">{d.icon}</span>
+                                                                <span className="text-sm font-semibold">{d.name}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm text-gray-400 tabular-nums">{base}</span>
+                                                                {mult > 1 && (
+                                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md
+                                                                        ${mult === 2 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                                                                        'bg-purple-500/20 text-purple-300 border border-purple-500/30'}`}>
+                                                                        ×{mult}
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-sm font-black tabular-nums" style={{ color: d.color }}>= {final}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-full h-2 bg-gray-800/60 rounded-full overflow-hidden">
+                                                            <div className="h-full rounded-full stat-bar-fill"
+                                                                style={{ width: `${Math.min((final / 80) * 100, 100)}%`,
+                                                                    background: `linear-gradient(90deg, ${d.color}66, ${d.color})` }} />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <div className="mt-4 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                            <p className="text-xs text-amber-300/90 font-bold mb-1">💡 เกณฑ์ทวีคูณ (Multiplier)</p>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                พลัง ≥ 30 → ×1.5 (ผู้เชี่ยวชาญ) &nbsp;|&nbsp; พลัง ≥ 40 → ×2.0 (สุดยอด)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tier Legend */}
+                            <div className="mb-10 anim-fade-up" style={{ animationDelay: '700ms' }}>
+                                <h3 className="text-center text-lg font-bold mb-5 bg-gradient-to-r from-amber-300 to-purple-300 bg-clip-text text-transparent">
+                                    🏆 ระดับอันดับอารยธรรม
+                                </h3>
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    {[
+                                        { r: 'S', l: '≥135', c: '#ffd700', t: 'ตำนาน', e: '✨' },
+                                        { r: 'A', l: '120-134', c: '#a855f7', t: 'รุ่งเรือง', e: '🌟' },
+                                        { r: 'B', l: '110-119', c: '#3b82f6', t: 'มั่นคง', e: '💎' },
+                                        { r: 'C', l: '95-109', c: '#22c55e', t: 'พัฒนา', e: '🌿' },
+                                        { r: 'D', l: '<95', c: '#6b7280', t: 'กระจาย', e: '🌫️' }
+                                    ].map(tier => (
+                                        <div key={tier.r} className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl border transition-all
+                                            ${rank === tier.r ? 'glass border-white/20 scale-105 shadow-lg' : 'bg-white/[0.02] border-white/5'}`}
+                                            style={rank === tier.r ? { boxShadow: `0 0 30px ${tier.c}30` } : {}}>
+                                            <span className="font-cinzel text-2xl font-black" style={{ color: tier.c }}>{tier.r}</span>
+                                            <div>
+                                                <div className="text-xs font-bold flex items-center gap-1">
+                                                    {tier.e} {tier.t}
+                                                </div>
+                                                <div className="text-[10px] text-gray-500">{tier.l} คะแนน</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Detailed Path Review */}
+                            <div className="mb-10 anim-fade-up" style={{ animationDelay: '800ms' }}>
+                                <h3 className="text-center text-lg font-bold mb-5 bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">
+                                    📜 บันทึกเส้นทางอารยธรรม
+                                </h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {choices.map((choice, idx) => (
+                                        <div key={idx} className="glass rounded-xl p-5">
+                                            <div className="flex items-center gap-2.5 mb-3">
+                                                <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black
+                                                    bg-gradient-to-br from-purple-500/50 to-blue-500/50 border border-purple-400/30">
+                                                    {idx + 1}
+                                                </span>
+                                                <div>
+                                                    <div className="text-[10px] text-gray-500 font-medium">{GAME_DATA[idx].titleEn}</div>
+                                                    <div className="text-xs text-gray-400">{GAME_DATA[idx].title}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2.5 mb-3">
+                                                <span className="text-2xl">{choice.icon}</span>
+                                                <div>
+                                                    <span className="font-bold text-sm">{choice.name}</span>
+                                                    <span className="block text-xs font-medium" style={{ color: choice.accent }}>{choice.subtitle}</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-gray-400 mb-3 leading-relaxed">{choice.knowledge[0]}</p>
+                                            <div className="flex gap-2">
+                                                {Object.entries(choice.stats).map(([k, v]) => (
+                                                    <span key={k} className="text-[10px] px-2 py-1 rounded-md font-bold"
+                                                        style={{ backgroundColor: DIMS[k].bg, color: DIMS[k].color }}>
+                                                        {DIMS[k].icon} +{v}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Restart */}
+                            <div className="text-center pb-8 anim-fade-up" style={{ animationDelay: '1000ms' }}>
+                                <button onClick={reset} id="restart-btn"
+                                    className="px-12 py-5 rounded-2xl font-bold text-lg
+                                        bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600
+                                        hover:from-purple-500 hover:via-violet-500 hover:to-blue-500
+                                        transform hover:scale-105 active:scale-95 transition-all duration-300
+                                        shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 btn-pulse">
+                                    🔄 สำรวจเส้นทางใหม่
+                                </button>
+                                <p className="mt-4 text-sm text-gray-500">
+                                    มีทั้งหมด <span className="text-purple-400 font-bold">24 รูปแบบ</span> อารยธรรมที่แตกต่างกัน — ลองหา
+                                    <span className="font-cinzel text-amber-400 font-bold"> Rank S</span>!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return null;
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

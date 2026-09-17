@@ -1,0 +1,252 @@
+เพื่อดึงศักยภาพสูงสุดของ Opus5 ในการเขียนโค้ดเกมบนเว็บแบบครบจบในไฟล์เดียว (Single-page Application) คุณควรใช้ชุดคำสั่ง (Prompt) ที่กำหนดสถาปัตยกรรม โครงสร้างตัวแปรแบบเมทริกซ์ (Matrix State) และการออกแบบ UI ที่ชัดเจน
+คุณสามารถคัดลอก Prompt ภาษาอังกฤษด้านล่างนี้ไปวางให้ Opus5 ทำงานได้ทันที (ภาษาอังกฤษจะทำให้ AI ประมวลผลตรรกะโค้ดได้แม่นยำที่สุด ส่วนเนื้อหาในเกมจะแสดงผลเป็นภาษาไทย)
+Copy Prompt ด้านล่างนี้ส่งให้ Opus5:
+> Act as an Expert React & Game UI Developer.
+> Your task is to build a web-based educational "Civilization Choice RPG" game. It must be a fully functional, self-contained interactive web app using React and Tailwind CSS (you can output a complete functional code that can run in an environment like CodeSandbox, Claude Artifacts, or a single HTML file with CDNs).
+> 1. Core Concept & Tech Stack
+>  * Genre: Decision-tree RPG game (Playtime: ~10 mins per loop).
+>  * Theme: Historical civilization evolution (Egypt, Greece, Rome, East-West trade).
+>  * Stack: React (State management), Tailwind CSS (Styling), Lucide React (for Icons).
+> 2. State Management & Data Structure (The Matrix Engine)
+> Use a precise state object to track 5 dimensions of civilization power: Military (M), Economy (E), Knowledge (K), Architecture (A), and Culture (C).
+>  * Initialize base stats at 0.
+>  * The game has 4 distinct stages. Each stage presents choices that add exactly 20 points distributed across the dimensions (e.g., Choice A adds +10 to K and +10 to C).
+> 3. The 4 Decision Stages (Thai Content)
+> Implement a mapping array for the 4 stages.
+>  * Stage 1 (Origin): Egypt (Focus: A, C) vs. Greece (Focus: K, M).
+>  * Stage 2 (Governance): If Egypt: God-King (A, C) OR Roman Engineering (A, E). If Greece: Democracy/Athens (K, E) OR Military/Sparta (M, A).
+>  * Stage 3 (Trade): Silk Road (E, C), Diplomat (K, C), or Isolation (M, A).
+>  * Stage 4 (Legacy): Wonders & Wisdom (A, K) OR Global Trade Hub (E, M).
+> 4. Scoring Engine & Multiplier Logic
+> After Stage 4, calculate the final score dynamically:
+>  * Base Calculation: Sum the points in each dimension (M, E, K, A, C).
+>  * Multiplier Rule: Iterate through the array of dimensions. If a dimension reaches >= 30 points, multiply its score by 1.5. If a dimension reaches >= 40 points, multiply its score by 2.0.
+>  * Total Score: The sum of all dimensions after multipliers are applied.
+>  * Ranking System: Rank S (>=135), Rank A (120-134), Rank B (110-119), Rank C (95-109), Rank D (<95).
+> 5. UI/UX & End-Game Visualization (Crucial)
+>  * Gameplay UI: Clean, interactive cards for choices with hover effects.
+>  * End Screen Design: Design the final outcome as a dynamic, horizontal showcase banner with a modern, "next-gen" educational aesthetic. The layout should have the proportions of a wide banner (similar to a 95x30 ratio) displaying:
+>    * The Title of their civilization (e.g., "จักรวรรดิวิศวกรรมการค้าโลก").
+>    * A visual stacking representation using icons (e.g., showing a Pyramid + Aqueduct + Camel based on their choices).
+>    * A Radar Chart or stat bar visualization of the 5 dimensions.
+>    * The final Rank (S, A, B, C, D) prominently displayed.
+> Please generate the complete React component code. Focus on robust state transitions, exact math for the multiplier scoring, and a highly polished Tailwind UI.
+> 
+สิ่งที่ Opus5 จะสร้างออกมาจากคำสั่งนี้:
+ * ระบบ Matrix State: โค้ดจะใช้ Array/Object ในการเก็บค่าพลังทั้ง 5 ด้าน และคำนวณตัวคูณ 1.5 หรือ 2.0 ให้อัตโนมัติเมื่อค่าถึงเกณฑ์
+ * Dynamic UI: หน้าจอเกมเพลย์ที่กดเลือกปุ่มแล้วค่าพลังจะอัปเดตแบบเรียลไทม์
+ * Horizontal Showcase: หน้าจอสรุปผลตอนจบจะถูกจัดวางเลย์เอาต์แนวนอนที่ดูทันสมัย คล้ายแบนเนอร์นิทรรศการวิชาการยุคใหม่ ซึ่งสามารถแคปหน้าจอไปอวดคะแนนกันได้ทันที
+คุณต้องการให้ผมเตรียมเนื้อหาข้อความ (Text) ที่เป็นคำอธิบายข้อดี-ข้อเสียของแต่ละตัวเลือก เพื่อนำไปเสียบในโค้ดของ Opus5 ด้วยเลยหรือไม่?
+
+นี่คือชุดคำสั่งแบบรวมคัดลอกครั้งเดียว (Master Prompt) ที่รวบรวมทั้งสถาปัตยกรรมระบบ ตรรกะการคำนวณคะแนน การแสดงผล UI และชุดข้อมูลเนื้อหาประวัติศาสตร์ทั้งหมด เพื่อส่งให้ Opus5 สร้างเว็บไซต์เกมได้จบสมบูรณ์ในรอบเดียวครับ
+Act as a Senior React & Game UI Developer. Your task is to build a fully functional, self-contained educational web app titled "Chronicles of the Ancients: ศึกนักท่องเวลาตะลุย 4 อารยธรรม" (Civilization Choice RPG). 
+
+The game must be written in React, using Tailwind CSS for styling and Lucide React for icons. It must be executable directly in a single-file environment (e.g., Claude Artifacts or CodeSandbox).
+
+---
+
+### 1. Game Mechanics & State Architecture
+
+- **Core Gameplay Loop:** A 4-stage decision-tree RPG (~10 mins per session). Players choose civilization paths and observe how their choices shape their empire's stats and final visual legacy.
+- **5-Dimensional Matrix State:** Track civilization parameters initialized at 0:
+  - `M`: Military (การทหาร)
+  - `E`: Economy (เศรษฐกิจ)
+  - `K`: Knowledge (ปัญญา/วิทยาการ)
+  - `A`: Architecture (วิศวกรรม/สถาปัตยกรรม)
+  - `C`: Culture (วัฒนธรรม/ความเชื่อ)
+
+---
+
+### 2. Multiplier Scoring Engine & Ranking System
+
+Upon reaching the end of Stage 4, compute the final score dynamically using this exact logic:
+
+1. **Base Points:** Sum the raw accumulated points for each dimension ($M, E, K, A, C$).
+2. **Dynamic Multiplier Rules:**
+   - If a dimension score $\ge 30$, apply a **1.5x multiplier** to that dimension's score.
+   - If a dimension score $\ge 40$, apply a **2.0x multiplier** to that dimension's score.
+3. **Total Score:** Sum all weighted dimension scores.
+4. **Ranking Tiers:**
+   - **Rank S:** Total $\ge 135$ points
+   - **Rank A:** Total $120 - 134$ points
+   - **Rank B:** Total $110 - 119$ points
+   - **Rank C:** Total $95 - 109$ points
+   - **Rank D:** Total $< 95$ points
+
+---
+
+### 3. UI/UX & End-Game Visualization Specs
+
+1. **Header & Progress Bar:** Display stage progression (Stage 1 to 4) and live stat icons at the top.
+2. **Choice Cards:** Present choices with clear descriptions, historical knowledge popups/tooltips, and stat gain previews (+10 A, +10 C, etc.).
+3. **End-Game Showcase Banner (Crucial):**
+   - **Aspect Ratio & Layout:** Horizontal presentation banner layout (styled with inspiration from a 95x30 ratio banner).
+   - **Visual Stacking Representation:** Show 2D vector/pixel-style stacked icon combinations reflecting decisions (e.g., Nile + Pyramid[span_0](start_span)[span_0](end_span) + Aqueduct + Silk Road Caravan).
+   - **Stat Radar/Bar Chart:** Visual breakdown of the 5 dimensions before and after multipliers.
+   - **Title & Badge:** Display the generated civilization title (e.g., "จักรวรรดิวิศวกรรมการค้าโลก") along with the final Rank Badge (S/A/B/C/D).
+   - **Restart Button:** Allow players to replay and explore all 24 path combinations.
+
+---
+
+### 4. Complete Embedded Thai Historical Dataset
+
+Use the following JSON dataset directly inside your component state:
+
+```json
+[
+  {
+    "stage": 1,
+    "title": "ขั้นที่ 1: จุดเริ่มต้นถิ่นฐาน (Origin)",
+    "options": [
+      {
+        "id": "1A",
+        "name": "ตั้งถิ่นฐานลุ่มแม่น้ำใหญ่ (อารยธรรมอียิปต์)",
+        "desc": "ตั้งรกรากบริเวณลุ่มแม่น้ำไนล์ที่พัดพาความอุดมสมบูรณ์มาทุกปี สร้างพีระมิดสุสานฟาโรห์ และใช้อักษรภาพเฮียโรกลิฟิก",
+        "knowledge": "อารยธรรมอียิปต์กำเนิดที่ลุ่มแม่น้ำไนล์ มีความเชื่อเรื่องชีวิตหลังความตาย ทำมัมมี่ สร้างพีระมิดด้วยหินกว่า 2 ล้านก้อน และใช้อักษรภาพเฮียโรกลิฟิกบันทึกเรื่องราว มีกระดาษปาปิรุสเป็นชนิดแรกของโลก",
+        "stats": { "A": 10, "C": 10 },
+        "icon": "pyramid"
+      },
+      {
+        "id": "1B",
+        "name": "ตั้งถิ่นฐานชายฝั่งและหมู่เกาะ (อารยธรรมกรีก)",
+        "desc": "ตั้งรกรากบนคาบสมุทรและหมู่เกาะ พัฒนาระบบนครรัฐ (Polis) เดินเรือค้าขาย และสร้างสถาปัตยกรรมวิหารพาร์เธนอน",
+        "knowledge": "กรีกโบราณประกอบด้วยนครรัฐอิสระ (Polis) มีความก้าวหน้าด้านปรัชญาโดยนักปราชญ์อย่างโสคราตีส เพลโต อริสโตเติล และสถาปัตยกรรมเสาหิน 3 แบบ (ดอริก, ไอโอนิก, คอรินเธียน)",
+        "stats": { "K": 10, "M": 10 },
+        "icon": "landmark"
+      }
+    ]
+  },
+  {
+    "stage": 2,
+    "title": "ขั้นที่ 2: ระบบการปกครอง (Governance)",
+    "options_from_1A": [
+      {
+        "id": "2A1",
+        "name": "ระบอบเทวราชา (God-King)",
+        "desc": "ยกย่องผู้นำเป็นฟาโรห์ ตัวแทนเทพเจ้าบนโลกมนุษย์ เน้นพิธีกรรม ความเชื่อเรื่องชีวิตหลังความตาย และการสร้างพีระมิด",
+        "knowledge": "ชาวอียิปต์นับถือฟาโรห์เป็นเทวราชา และบูชาเทพเจ้าสำคัญ เช่น เทพเจ้ารา (ดวงอาทิตย์), โอซิริส (ยมโลก) และไอซิส (การชุบชีวิต)",
+        "stats": { "A": 10, "C": 10 },
+        "icon": "crown"
+      },
+      {
+        "id": "2A2",
+        "name": "จักรวรรดิวิศวกรรม (อิทธิพลโรมัน)",
+        "desc": "ปกครองด้วยกฎหมายลายลักษณ์อักษร สร้างโครงสร้างพื้นฐานอย่างระบบท่อส่งน้ำประปา (Aqueduct) และสนามกีฬาโคลอสเซียม",
+        "knowledge": "โรมันโดดเด่นเรื่อง 'กฎหมายสิบสองโต๊ะ' ที่ให้ความยุติธรรมแก่ทุกชนชั้น (แพทริเซียนและพลีเบียน) และวิศวกรรมการสร้างประตูโค้ง (Arch) หลังคาโดม และท่อส่งน้ำ",
+        "stats": { "A": 10, "E": 10 },
+        "icon": "hammer"
+      }
+    ],
+    "options_from_1B": [
+      {
+        "id": "2B1",
+        "name": "นครรัฐประชาธิปไตย (สายเอเธนส์)",
+        "desc": "ให้สิทธิพลเมืองร่วมตั้งสภาราษฎร พัฒนาปัญญา ปรัชญา ศิลปะ และระบอบประชาธิปไตย",
+        "knowledge": "นครรัฐเอเธนส์เป็นต้นกำเนิดระบอบประชาธิปไตย เน้นเสรีภาพ การอภิปรายเหตุผล และเป็นศูนย์กลางของนักปราชญ์กรีก",
+        "stats": { "K": 10, "E": 10 },
+        "icon": "scroll"
+      },
+      {
+        "id": "2B2",
+        "name": "นครรัฐการทหาร (สายสปาร์ตา)",
+        "desc": "ปกครองแบบเผด็จการทหาร ฝึกฝนวินัยและความแข็งแกร่งของระเบียบวินัยกองทัพตั้งแต่เด็ก",
+        "knowledge": "นครรัฐสปาร์ตาเน้นความเข้มงวดทางทหาร พลเมืองทุกคนต้องรับการฝึกเป็นนักรบเพื่อความมั่นคงของนครรัฐ",
+        "stats": { "M": 10, "A": 10 },
+        "icon": "shield"
+      }
+    ]
+  },
+  {
+    "stage": 3,
+    "title": "ขั้นที่ 3: การติดต่อระหว่างโลกตะวันตกกับโลกตะวันออก (East-West Contact)",
+    "options": [
+      {
+        "id": "3.1",
+        "name": "การค้าเส้นทางสายไหม (Silk Road Trade)",
+        "desc": "เปิดเส้นทางการค้าบกข้ามทวีป ส่งออกข้าวสาลี น้ำมันมะกอก เหล้าองุ่น แลกเปลี่ยนกับเครื่องเทศ ผ้าไหม และหยกจากตะวันออก",
+        "knowledge": "เส้นทางสายไหมเป็นเส้นทางค้าขายข้ามทวีปที่เชื่อมตะวันตกและตะวันออก เกิดการแลกเปลี่ยนสินค้ารวมถึงเทคโนโลยีสำคัญอย่างกระดาษและดินปืนจากจีน",
+        "stats": { "E": 10, "C": 10 },
+        "icon": "coins"
+      },
+      {
+        "id": "3.2",
+        "name": "การทูตและนักเดินทาง (แบบมาร์โค โปโล)",
+        "desc": "ส่งผู้แทนและนักเดินทางออกสำรวจดินแดน บันทึกความรู้และเรียนรู้วิทยาการจากต่างทวีป",
+        "knowledge": "การเดินทางของ มาร์โค โปโล พ่อค้าชาวเวนิสที่เดินทางตามเส้นทางสายไหมไปถึงประเทศจีน บันทึกของเขาช่วยกระตุ้นให้ชาวยุโรปสนใจโลกตะวันออกอย่างมาก",
+        "stats": { "K": 10, "C": 10 },
+        "icon": "compass"
+      },
+      {
+        "id": "3.3",
+        "name": "นโยบายพึ่งพาตนเอง (Isolationism)",
+        "desc": "เน้นพัฒนาทรัพยากรภายใน ป้องกันการรุกราน และรักษาเอกลักษณ์วัฒนธรรมเดิมไว้อย่างเข้มงวด",
+        "knowledge": "การขยายอำนาจและการค้าในอดีตมักมาพร้อมสงครามและการเผยแผ่ศาสนาคริสต์และอิสลาม การปิดประเทศจึงเป็นการเน้นป้องกันตนเอง",
+        "stats": { "M": 10, "A": 10 },
+        "icon": "lock"
+      }
+    ]
+  },
+  {
+    "stage": 4,
+    "title": "ขั้นที่ 4: มรดกยุคทอง (Golden Age Legacy)",
+    "options": [
+      {
+        "id": "4.1",
+        "name": "เน้นสิ่งมหัศจรรย์และภูมิปัญญา",
+        "desc": "ทุ่มเทสร้างมรดกทางสถาปัตยกรรม รวบรวมตำราปรัชญา และสร้างกฎหมายหลักของอารยธรรม",
+        "knowledge": "มรดกยุคโบราณที่ตกทอดถึงปัจจุบันคือแนวคิดกฎหมาย กาพย์กลอน ปรัชญา และมรดกทางสถาปัตยกรรมขนาดใหญ่",
+        "stats": { "A": 10, "K": 10 },
+        "icon": "book-open"
+      },
+      {
+        "id": "4.2",
+        "name": "เน้นศูนย์กลางการค้าโลก",
+        "desc": "สร้างเมืองท่า มหานครการค้า และระบบกองทัพคุ้มกันเส้นทางการแลกเปลี่ยนสินค้าข้ามทวีป",
+        "knowledge": "การเป็นศูนย์กลางการค้าช่วยกระจายสินค้าสำคัญ เช่น ข้าวสาลี น้ำมันมะกอก เครื่องเทศ ผ้าไหม และอิทธิพลทางวัฒนธรรมไปทั่วโลก",
+        "stats": { "E": 10, "M": 10 },
+        "icon": "globe"
+      }
+    ]
+  }
+]
+
+Generate the single complete, production-ready React component script code now.
+
+คุณสามารถคัดลอกข้อความในกรอบด้านบนทั้งหมดไปวางใน Opus5 ได้เลยครับ โค้ดที่ได้ออกมาจะประกอบไปด้วยตรรกะ ตัวแปร และ UI ที่สวยงามพร้อมใช้งานทันที
+
+การแสดงผลวิวัฒนาการอารยธรรมในตอนจบสามารถใช้ กราฟิกแบบ 2D ไอคอนหรือ Pixel Art ที่ค่อยๆ ซ้อนทับกัน (Stacking) เริ่มจากภาพพื้นดินเปล่าๆ แล้วมีสัญลักษณ์โผล่ขึ้นมาตามการเลือกในแต่ละขั้น เช่น หากเลือกอียิปต์ จะมีแม่น้ำและสถาปัตยกรรมแบบพีระมิดโผล่ขึ้นมา หากเลือกเส้นทางสายไหม จะมีกองคาราวานอูฐและกล่องสินค้าปรากฏขึ้นมา ทำให้ผู้เล่นเห็นผลลัพธ์ที่เป็นรูปธรรมและเข้าใจง่ายโดยไม่ต้องใช้กราฟิกที่ซับซ้อน
+ระบบการให้คะแนนและเกณฑ์ทวีคูณ (Combo Multiplier)
+การเลือกในแต่ละขั้น (4 ขั้นตอน) จะให้ "แต้มพื้นฐาน (Base Stats)" ขั้นละ 20 แต้ม กระจายลงใน 5 มิติ ได้แก่ ทหาร (M), เศรษฐกิจ (E), ปัญญา/วิทยาการ (K), สถาปัตยกรรม (A) และ วัฒนธรรม (C) รวมแต้มพื้นฐานเมื่อจบเกมคือ 80 แต้ม
+ความสนุกและคะแนนที่แตกต่างกันจะมาจาก "เกณฑ์ทวีคูณ (Multiplier)" ซึ่งสะท้อนถึงการพัฒนาที่สอดคล้องกัน (Synergy) จนถึงจุดสูงสุดของสายนั้นๆ
+ * แต้มมิติใดมิติหนึ่งถึง 30 แต้ม: เลื่อนขั้นเป็น "อารยธรรมผู้เชี่ยวชาญ" -> คูณ 1.5 เฉพาะแต้มในมิตินั้น
+ * แต้มมิติใดมิติหนึ่งถึง 40 แต้มขึ้นไป: เลื่อนขั้นเป็น "สุดยอดอารยธรรม" -> คูณ 2.0 เฉพาะแต้มในมิตินั้น
+(คะแนนรวม = แต้มมิติที่ผ่านเกณฑ์ทวีคูณ + แต้มมิติอื่นๆ ที่เหลือ)
+ตารางจัดอันดับ 24 รูปแบบอารยธรรม (Ranked Outcomes)
+จากทางเลือกทั้งหมด 24 รูปแบบ เมื่อนำมาคำนวณผ่านระบบเกณฑ์ทวีคูณ จะสามารถจัดอันดับ (Tier List) จากคะแนนสูงสุดลงมาต่ำสุดได้ดังนี้
+| อันดับ | ระดับ (Tier) / คะแนนรวม | เส้นทางการตัดสินใจ (จุดเริ่มต้น + การปกครอง + การติดต่อ + มรดก) | จุดเด่นที่ทำให้ได้คะแนน |
+|---|---|---|---|
+| 1 | Rank S (135 คะแนน) | กรีก + เอเธนส์ + สายไหม + ศูนย์กลางการค้า | สุดยอดเศรษฐกิจ (E40 x2) และ เชี่ยวชาญปัญญา (K30 x1.5) |
+| 2 | Rank S (135 คะแนน) | กรีก + สปาร์ตา + สายไหม + ศูนย์กลางการค้า | สุดยอดเศรษฐกิจ (E40 x2) และ เชี่ยวชาญทหาร (M30 x1.5) |
+| 3 | Rank A (130 คะแนน) | กรีก + เอเธนส์ + ทูตสำรวจ + สิ่งมหัศจรรย์ | สุดยอดสายปัญญา (K50 x2 = 100 แต้มในหมวดเดียว) |
+| 4 | Rank A (120 คะแนน) | อียิปต์ + เทวราชา + สายไหม + ศูนย์กลางการค้า | สุดยอดเศรษฐกิจ (E40 x2) |
+| 5 | Rank A (120 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + สายไหม + ศูนย์กลางการค้า | สุดยอดเศรษฐกิจ (E40 x2) |
+| 6 | Rank A (120 คะแนน) | กรีก + เอเธนส์ + สายไหม + สิ่งมหัศจรรย์ | สุดยอดปัญญา (K40 x2) |
+| 7 | Rank A (120 คะแนน) | กรีก + เอเธนส์ + ทูตสำรวจ + ศูนย์กลางการค้า | สุดยอดปัญญา (K40 x2) |
+| 8 | Rank A (120 คะแนน) | กรีก + สปาร์ตา + ปิดประเทศ + สิ่งมหัศจรรย์ | สุดยอดทหาร (M40 x2) |
+| 9 | Rank A (120 คะแนน) | กรีก + สปาร์ตา + ปิดประเทศ + ศูนย์กลางการค้า | สุดยอดทหาร (M40 x2) |
+| 10 | Rank A (120 คะแนน) | กรีก + เอเธนส์ + ปิดประเทศ + สิ่งมหัศจรรย์ | สุดยอดปัญญา (K40 x2) |
+| 11 | Rank B (110 คะแนน) | อียิปต์ + เทวราชา + ทูตสำรวจ + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30) และ วัฒนธรรม (C30) |
+| 12 | Rank B (110 คะแนน) | อียิปต์ + เทวราชา + ปิดประเทศ + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30) และ วัฒนธรรม (C30) |
+| 13 | Rank B (110 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + ทูตสำรวจ + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30) และ ปัญญา (K30) |
+| 14 | Rank B (110 คะแนน) | กรีก + สปาร์ตา + ทูตสำรวจ + สิ่งมหัศจรรย์ | เชี่ยวชาญทหาร (M30) และ ปัญญา (K30) |
+| 15 | Rank C (95 คะแนน) | อียิปต์ + เทวราชา + สายไหม + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30 x1.5) นอกนั้นกระจาย |
+| 16 | Rank C (95 คะแนน) | อียิปต์ + เทวราชา + ทูตสำรวจ + ศูนย์กลางการค้า | เชี่ยวชาญวัฒนธรรม (C30 x1.5) |
+| 17 | Rank C (95 คะแนน) | อียิปต์ + เทวราชา + ปิดประเทศ + ศูนย์กลางการค้า | เชี่ยวชาญวัฒนธรรม (C30 x1.5) |
+| 18 | Rank C (95 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + สายไหม + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30 x1.5) |
+| 19 | Rank C (95 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + ปิดประเทศ + สิ่งมหัศจรรย์ | เชี่ยวชาญสถาปัตย์ฯ (A30 x1.5) |
+| 20 | Rank C (95 คะแนน) | กรีก + เอเธนส์ + ปิดประเทศ + ศูนย์กลางการค้า | เชี่ยวชาญปัญญา (K30 x1.5) |
+| 21 | Rank C (95 คะแนน) | กรีก + สปาร์ตา + สายไหม + สิ่งมหัศจรรย์ | เชี่ยวชาญทหาร (M30 x1.5) |
+| 22 | Rank C (95 คะแนน) | กรีก + สปาร์ตา + ทูตสำรวจ + ศูนย์กลางการค้า | เชี่ยวชาญทหาร (M30 x1.5) |
+| 23 | Rank D (80 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + ทูตสำรวจ + ศูนย์กลางการค้า | อารยธรรมไร้ทิศทาง (ไม่มีทักษะใดแตะถึง 30 แต้มเลย) |
+| 24 | Rank D (80 คะแนน) | อียิปต์ + วิศวกรรมโรมัน + ปิดประเทศ + ศูนย์กลางการค้า | อารยธรรมไร้ทิศทาง (ไม่มีทักษะใดแตะถึง 30 แต้มเลย) |
+รูปแบบที่ได้คะแนน Rank D (อันดับ 23-24) จะทำหน้าที่เป็นบทเรียนให้ผู้เล่นเห็นว่า การเลือกพัฒนาที่สะเปะสะปะ (เช่น สร้างท่อส่งน้ำโรมัน แต่กลับเลือกปิดประเทศ แล้วดันไปเน้นสร้างศูนย์กลางการค้าในตอนจบ) จะทำให้ไม่มีจุดเด่นใดๆ ไปสู้กับอารยธรรมอื่นได้เลย
